@@ -1,0 +1,9 @@
+*.o
+*.a
+.DS_Store
+*.ppm
+*.txt
+bin
+*.docx
+output
+run.sh
