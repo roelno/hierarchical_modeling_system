@@ -24,6 +24,9 @@ typedef struct {
   int screeny;
 } View3D;
 
+// Sets the view structure to be a 2D view with the given parameters.
+void view2D_set(View2D *view, Point *vrp, double dx, Vector *x, int screenx, int screeny);
+
 // Sets vtm to be the view transformation defined by the 2DView structure.
 void matrix_setView2D(Matrix *vtm, View2D *view);
 
