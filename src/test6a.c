@@ -160,12 +160,10 @@ int main(int argc, char *argv[]) {
     module_point( scene, &(p[0]) );
   }
 
-
 	// create the image and draw the module
   src = image_create( view.screeny, view.screenx );
   ds = drawstate_create(); // default color is white
   module_draw( scene, &vtm, &gtm, ds, NULL, src );
-
 	// write out the image
   image_write( src, "xwings.ppm" );
 

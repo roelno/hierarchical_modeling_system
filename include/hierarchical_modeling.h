@@ -11,7 +11,7 @@ typedef enum {
   ObjPoint,
   ObjPolyline,
   ObjPolygon,
-  //   ObjIdentity,
+  ObjIdentity,
   ObjMatrix,
   ObjColor,
   ObjBodyColor,
@@ -116,6 +116,23 @@ void module_shear2D(Module *md, double shx, double shy);
 // Lighting can be an empty structure.)
 void module_draw(Module *md, Matrix *VTM, Matrix *GTM, DrawState *ds,
                  Lighting *lighting, Image *src);
+
+// Matrix operand to add a 3D translation to the Module
+void module_translate(Module *md, double tx, double ty, double tz);
+
+// Matrix operand to add a 3D scale to the Module
+void module_scale(Module *md, double sx, double sy, double sz);
+
+// Matrix operand to add a rotation about the X-axis to the Module
+void module_rotateX(Module *md, double cth, double sth);
+
+// Matrix operand to add a rotation about the Y-axis to the Module
+void module_rotateY(Module *md, double cth, double sth);
+
+// Matrix operand to add a rotation that orients to the orthonormal axes u, v, w
+void module_rotateXYZ(Module *md, Vector *u, Vector *v, Vector *w);
+
+void module_cube(Module *md, int solid);
 
 // create a new DrawState structure and initialize the fields.
 DrawState *drawstate_create();

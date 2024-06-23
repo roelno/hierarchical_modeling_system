@@ -29,6 +29,8 @@ void line_copy(Line *to, Line *from) {
 }
 
 void line_draw(Line *l, Image *src, Color c) {
+  printf("drawing line (%.2f, %.2f) to (%.2f, %.2f)\n", l->a.val[0], l->a.val[1],
+         l->b.val[0], l->b.val[1]);
   int x0 = (int)l->a.val[0];
   int y0 = (int)l->a.val[1];
   int x1 = (int)l->b.val[0];

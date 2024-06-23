@@ -1,4 +1,5 @@
 #include "color.h"
+#include <stdio.h>
 #include <stdlib.h>
 
 void color_copy(Color *to, Color *from) {

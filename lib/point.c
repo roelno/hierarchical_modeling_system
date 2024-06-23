@@ -42,7 +42,7 @@ void point_draw(Point *p, Image *src, Color c) {
     int y = (int)p->val[1];
 
     if (x >= 0 && x < src->cols && y >= 0 && y < src->rows) {
-        image_setColor(src, x, y, c);
+        image_setColor(src, y, x, c);
     } else {
         fprintf(stderr, "Point out of bounds: (%d, %d)\n", x, y);
     }

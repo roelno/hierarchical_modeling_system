@@ -6,6 +6,7 @@
 #include "image.h"
 #include "polygon.h"
 #include <stdio.h>
+#include <math.h>
 
 /**
  * @brief Structure representing a circle.

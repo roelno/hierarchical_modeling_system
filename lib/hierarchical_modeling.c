@@ -45,8 +45,8 @@ Element* element_init(ObjectType type, void* obj) {
         case ObjPolygon:
             new_element->obj = duplicate_polygon((Polygon*)obj);
             break;
-        // case ObjIdentity:
-        //     break;
+        case ObjIdentity:
+            break;
         case ObjMatrix:
             new_element->obj = duplicate_matrix((Matrix*)obj);
             break;
@@ -175,8 +175,8 @@ void element_delete(Element* e) {
             polygon_clear((Polygon*)e->obj);
             free(e->obj);
             break;
-        // case ObjIdentity:
-        //     break;
+        case ObjIdentity:
+            break;
         case ObjMatrix:
             matrix_clear((Matrix*)e->obj);
             free(e->obj);
@@ -195,7 +195,7 @@ void element_delete(Element* e) {
         // case ObjLight:
         //     break;
         case ObjModule:
-            module_clear((Module*)e->obj);
+            // module_clear((Module*)e->obj);
             break;
         default:
             fprintf(stderr, "Invalid object type\n");
@@ -288,12 +288,9 @@ void module_polygon(Module* md, Polygon* p) {
 
 // Object that sets the current transform to the identity, placed at the tail of the module’s list.
 void module_identity(Module* md) {
-    Matrix* m = (Matrix*)malloc(sizeof(Matrix));
-    matrix_identity(m); 
-
     Element* new_element = element_create();
-    new_element->type = ObjMatrix;
-    new_element->obj = m;
+    new_element->type = ObjIdentity;
+    new_element->obj = NULL;
     module_insert(md, new_element);
 }
 
@@ -312,6 +309,7 @@ void module_translate2D(Module* md, double tx, double ty) {
 // Matrix operand to add a scale matrix to the tail of the module’s list.
 void module_scale2D(Module* md, double sx, double sy) {
     Matrix* m = (Matrix*)malloc(sizeof(Matrix));
+    matrix_identity(m);
     matrix_scale2D(m, sx, sy);
 
     Element* new_element = element_create();
@@ -323,6 +321,7 @@ void module_scale2D(Module* md, double sx, double sy) {
 // Matrix operand to add a rotation matrix to the tail of the module’s list.
 void module_rotate2D(Module* md, double cth, double sth) {
     Matrix* m = (Matrix*)malloc(sizeof(Matrix));
+    matrix_identity(m);
     matrix_rotateZ(m, cth, sth);
 
     Element* new_element = element_create();
@@ -334,6 +333,7 @@ void module_rotate2D(Module* md, double cth, double sth) {
 // Matrix operand to add a rotation about the Z axis to the tail of the module’s list
 void module_rotateZ(Module* md, double cth, double sth) {
     Matrix* m = (Matrix*)malloc(sizeof(Matrix));
+    matrix_identity(m);
     matrix_rotateZ(m, cth, sth);
 
     Element* new_element = element_create();
@@ -343,49 +343,59 @@ void module_rotateZ(Module* md, double cth, double sth) {
 }
 
 
-
 // Helper function to apply transformations and draw a point
 void draw_transformed_point(Point *p, Matrix *VTM, Matrix *GTM, Matrix *LTM, DrawState *ds, Image *src) {
-    Point temp, temp2, temp3;
+    Point temp;
     matrix_xformPoint(LTM, p, &temp);    // LTM * Porg
-    matrix_xformPoint(GTM, &temp, &temp2); // GTM * (LTM * Porg)
-    matrix_xformPoint(VTM, &temp2, &temp3); // VTM * (GTM * (LTM * Porg))
-    point_normalize(&temp3);
-    point_draw(&temp3, src, ds->color);
+    printf("LTM: \n");
+    matrix_print(LTM, stdout);
+    printf("temp: %f, %f, %f, %f\n", p->val[0], p->val[1], p->val[2], p->val[3]);
+    matrix_xformPoint(GTM, &temp, &temp); // GTM * (LTM * Porg)
+    printf("GTM: \n");
+    matrix_print(GTM, stdout);
+    printf("temp: %f, %f, %f, %f\n", temp.val[0], temp.val[1], temp.val[2], temp.val[3]);
+    matrix_xformPoint(VTM, &temp, &temp); // VTM * (GTM * (LTM * Porg))
+    printf("VTM: \n");
+    matrix_print(VTM, stdout);
+    printf("temp: %f, %f, %f, %f\n", temp.val[0], temp.val[1], temp.val[2], temp.val[3]);
+    point_normalize(&temp);
+    printf("norm temp: %f, %f, %f, %f\n", temp.val[0], temp.val[1], temp.val[2], temp.val[3]);
+    point_draw(&temp, src, ds->color);
+    printf("color: %f, %f, %f\n", ds->color.c[0], ds->color.c[1], ds->color.c[2]);
 }
 
 
 // Helper function to apply transformations and draw a line
 void draw_transformed_line(Line *l, Matrix *VTM, Matrix *GTM, Matrix *LTM, DrawState *ds, Image *src) {
-    Line temp, temp2, temp3;
+    Line temp;
     line_copy(&temp, l);
     matrix_xformPoint(LTM, &temp.a, &temp.a);
     matrix_xformPoint(LTM, &temp.b, &temp.b);
-    matrix_xformPoint(GTM, &temp.a, &temp2.a);
-    matrix_xformPoint(GTM, &temp.b, &temp2.b);
-    matrix_xformPoint(VTM, &temp2.a, &temp3.a);
-    matrix_xformPoint(VTM, &temp2.b, &temp3.b);
-    line_draw(&temp3, src, ds->color);
+    matrix_xformPoint(GTM, &temp.a, &temp.a);
+    matrix_xformPoint(GTM, &temp.b, &temp.b);
+    matrix_xformPoint(VTM, &temp.a, &temp.a);
+    matrix_xformPoint(VTM, &temp.b, &temp.b);
+    line_draw(&temp, src, ds->color);
 }
 
 // Helper function to apply transformations and draw a polyline
 void draw_transformed_polyline(Polyline *p, Matrix *VTM, Matrix *GTM, Matrix *LTM, DrawState *ds, Image *src) {
-    Polyline temp, temp2, temp3;
+    Polyline temp;
     polyline_copy(&temp, p);
     matrix_xformPolyline(LTM, &temp);
     matrix_xformPolyline(GTM, &temp);
-    // matrix_xformPolyline(VTM, &temp, &temp2);
-    polyline_draw(&temp2, src, ds->color);
+    matrix_xformPolyline(VTM, &temp);
+    polyline_draw(&temp, src, ds->color);
 }
 
 // Helper function to apply transformations and draw a polygon
 void draw_transformed_polygon(Polygon *p, Matrix *VTM, Matrix *GTM, Matrix *LTM, DrawState *ds, Image *src) {
-    Polygon temp, temp2, temp3;
+    Polygon temp;
     polygon_copy(&temp, p);
     matrix_xformPolygon(LTM, &temp);
     matrix_xformPolygon(GTM, &temp);
-    // matrix_xformPolygon(VTM, &temp, &temp2);
-    polygon_drawFill(&temp2, src, ds->color);
+    matrix_xformPolygon(VTM, &temp);
+    polygon_drawFill(&temp, src, ds->color);
 }
 
 // Draw the module into the image using the given view transformation matrix
@@ -408,7 +418,8 @@ void module_draw(Module *md, Matrix *VTM, Matrix *GTM, DrawState *ds,
             case ObjNone:
                 break;
             case ObjLine:
-                draw_transformed_line((Line*)current->obj, VTM, GTM, &LTM, ds, src);                break;
+                draw_transformed_line((Line*)current->obj, VTM, GTM, &LTM, ds, src);                
+                break;
             case ObjPoint:
                 draw_transformed_point((Point*)current->obj, VTM, GTM, &LTM, ds, src);
                 break;
@@ -418,10 +429,11 @@ void module_draw(Module *md, Matrix *VTM, Matrix *GTM, DrawState *ds,
             case ObjPolygon:
                 draw_transformed_polygon((Polygon*)current->obj, VTM, GTM, &LTM, ds, src);
                 break;
-            // case ObjIdentity:
-            //     break;
+            case ObjIdentity:
+                matrix_identity(&LTM);
+                break;
             case ObjMatrix:
-                matrix_multiply(&LTM, (Matrix*)current->obj, &LTM); // LTM = LTM * current->obj
+                matrix_multiply((Matrix*)current->obj, &LTM, &LTM); // LTM = current->obj * LTM
                 break;
             case ObjColor:
                 break;
@@ -462,7 +474,7 @@ DrawState* drawstate_create() {
     new_drawstate->zBufferFlag = 1;
     new_drawstate->body = (Color){{0.0, 0.0, 0.0}};
     new_drawstate->surface = (Color){{0.0, 0.0, 0.0}};
-    new_drawstate->color = (Color){{0.0, 0.0, 0.0}};
+    new_drawstate->color = (Color){{1.0, 1.0, 1.0}};
     new_drawstate->flatColor = (Color){{0.0, 0.0, 0.0}};
     new_drawstate->surface = (Color){{0.0, 0.0, 0.0}};
     new_drawstate->shade = ShadeConstant;
