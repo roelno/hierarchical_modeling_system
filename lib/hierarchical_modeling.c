@@ -395,7 +395,7 @@ void draw_transformed_polygon(Polygon *p, Matrix *VTM, Matrix *GTM, Matrix *LTM,
     matrix_xformPolygon(LTM, &temp);
     matrix_xformPolygon(GTM, &temp);
     matrix_xformPolygon(VTM, &temp);
-    polygon_drawFill(&temp, src, ds->color);
+    polygon_draw(&temp, src, ds->color);
 }
 
 // Draw the module into the image using the given view transformation matrix
@@ -436,12 +436,16 @@ void module_draw(Module *md, Matrix *VTM, Matrix *GTM, DrawState *ds,
                 matrix_multiply((Matrix*)current->obj, &LTM, &LTM); // LTM = current->obj * LTM
                 break;
             case ObjColor:
+                ds->color = *((Color*)current->obj);
                 break;
             case ObjBodyColor:
+                ds->body = *((Color*)current->obj);
                 break;
             case ObjSurfaceColor:
+                ds->surface = *((Color*)current->obj);
                 break;
             case ObjSurfaceCoeff:
+                ds->surfaceCoeff = *((float*)current->obj);
                 break;
             // case ObjLight:
             //     break;
@@ -462,6 +466,177 @@ void module_draw(Module *md, Matrix *VTM, Matrix *GTM, DrawState *ds,
         }
         current = current->next;
     }
+}
+
+// Matrix operand to add a 3D translation to the Module
+void module_translate(Module *md, double tx, double ty, double tz) {
+    Matrix* m = (Matrix*)malloc(sizeof(Matrix));
+    matrix_identity(m);
+    matrix_translate(m, tx, ty, tz);
+
+    Element* new_element = element_create();
+    new_element->type = ObjMatrix;
+    new_element->obj = m;
+    module_insert(md, new_element);
+}
+
+// Matrix operand to add a 3D scale to the Module
+void module_scale(Module *md, double sx, double sy, double sz) {
+    Matrix* m = (Matrix*)malloc(sizeof(Matrix));
+    matrix_identity(m);
+    matrix_scale(m, sx, sy, sz);
+
+    Element* new_element = element_create();
+    new_element->type = ObjMatrix;
+    new_element->obj = m;
+    module_insert(md, new_element);
+}
+
+// Matrix operand to add a rotation about the X-axis to the Module
+void module_rotateX(Module *md, double cth, double sth) {
+    Matrix* m = (Matrix*)malloc(sizeof(Matrix));
+    matrix_identity(m);
+    matrix_rotateX(m, cth, sth);
+
+    Element* new_element = element_create();
+    new_element->type = ObjMatrix;
+    new_element->obj = m;
+    module_insert(md, new_element);
+}
+
+// Matrix operand to add a rotation about the Y-axis to the Module
+void module_rotateY(Module *md, double cth, double sth) {
+    Matrix* m = (Matrix*)malloc(sizeof(Matrix));
+    matrix_identity(m);
+    matrix_rotateY(m, cth, sth);
+
+    Element* new_element = element_create();
+    new_element->type = ObjMatrix;
+    new_element->obj = m;
+    module_insert(md, new_element);
+}
+
+// Matrix operand to add a rotation that orients to the orthonormal axes u, v, w
+void module_rotateXYZ(Module *md, Vector *u, Vector *v, Vector *w) {
+    Matrix* m = (Matrix*)malloc(sizeof(Matrix));
+    matrix_identity(m);
+    matrix_rotateXYZ(m, u, v, w);
+
+    Element* new_element = element_create();
+    new_element->type = ObjMatrix;
+    new_element->obj = m;
+    module_insert(md, new_element);
+}
+
+//  Adds a unit cube, axis-aligned and centered on zero to the Module. If solid
+//  is zero, add only lines. If solid is non-zero, use polygons. Make sure each
+//  polygon has surface normals defined for it
+void module_cube(Module *md, int solid) {
+    Point pt[8];
+    Polygon p[6];
+    Line l[12];
+
+    // Define the 8 vertices of the cube
+    point_set3D(&pt[0], -1.0, -1.0, -1.0);
+    point_set3D(&pt[1], 1.0, -1.0, -1.0);
+    point_set3D(&pt[2], 1.0, 1.0, -1.0);
+    point_set3D(&pt[3], -1.0, 1.0, -1.0);
+    point_set3D(&pt[4], -1.0, -1.0, 1.0);
+    point_set3D(&pt[5], 1.0, -1.0, 1.0);
+    point_set3D(&pt[6], 1.0, 1.0, 1.0);
+    point_set3D(&pt[7], -1.0, 1.0, 1.0);
+
+    // Define the 6 faces of the cube
+    Point temp[4];
+    point_copy(&temp[0], &pt[0]);
+    point_copy(&temp[1], &pt[1]);
+    point_copy(&temp[2], &pt[2]);
+    point_copy(&temp[3], &pt[3]);
+    polygon_set(&p[0], 4, temp);
+    point_copy(&temp[0], &pt[4]);
+    point_copy(&temp[1], &pt[5]);
+    point_copy(&temp[2], &pt[6]);
+    point_copy(&temp[3], &pt[7]);
+    polygon_set(&p[1], 4, temp);
+    point_copy(&temp[0], &pt[0]);
+    point_copy(&temp[1], &pt[1]);
+    point_copy(&temp[2], &pt[5]);
+    point_copy(&temp[3], &pt[4]);
+    polygon_set(&p[2], 4, temp);
+    point_copy(&temp[0], &pt[2]);
+    point_copy(&temp[1], &pt[3]);
+    point_copy(&temp[2], &pt[7]);
+    point_copy(&temp[3], &pt[6]);
+    polygon_set(&p[3], 4, temp);
+    point_copy(&temp[0], &pt[1]);
+    point_copy(&temp[1], &pt[2]);
+    point_copy(&temp[2], &pt[6]);
+    point_copy(&temp[3], &pt[5]);
+    polygon_set(&p[4], 4, temp);
+    point_copy(&temp[0], &pt[0]);
+    point_copy(&temp[1], &pt[3]);
+    point_copy(&temp[2], &pt[7]);
+    point_copy(&temp[3], &pt[4]);
+    polygon_set(&p[5], 4, temp);
+
+    // Add the polygons to the module
+    for (int i = 0; i < 6; i++) {
+        if (solid) {
+            module_polygon(md, &p[i]);
+        } else {
+            Line l1, l2, l3, l4;
+            line_set(&l1, p[i].vertex[0], p[i].vertex[1]);
+            line_set(&l2, p[i].vertex[1], p[i].vertex[2]);
+            line_set(&l3, p[i].vertex[2], p[i].vertex[3]);
+            line_set(&l4, p[i].vertex[3], p[i].vertex[0]);
+            module_line(md, &l1);
+            module_line(md, &l2);
+            module_line(md, &l3);
+            module_line(md, &l4);
+        }
+    }
+}
+
+// Adds the foreground color value to the tail of the module’s list.
+void module_color(Module *md, Color *c) {
+    Color* c_copy = duplicate_color(c);
+    Element* new_element = element_create();
+    new_element->type = ObjColor;
+    new_element->obj = c_copy;
+    module_insert(md, new_element);
+}
+
+// Adds the body color value to the tail of the module’s list.
+void module_bodyColor(Module *md, Color *c) {
+    Color* c_copy = duplicate_color(c);
+    Element* new_element = element_create();
+    new_element->type = ObjBodyColor;
+    new_element->obj = c_copy;
+    module_insert(md, new_element);
+}
+
+// Adds the surface color value to the tail of the module’s list.
+void module_surfaceColor(Module *md, Color *c) {
+    Color* c_copy = duplicate_color(c);
+    Element* new_element = element_create();
+    new_element->type = ObjSurfaceColor;
+    new_element->obj = c_copy;
+    module_insert(md, new_element);
+}
+
+// Adds the surface coefficient value to the tail of the module’s list.
+void module_surfaceCoeff(Module *md, float coeff) {
+    float* coeff_copy = (float*)malloc(sizeof(float));
+    if (coeff_copy == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+    memcpy(coeff_copy, &coeff, sizeof(float));
+
+    Element* new_element = element_create();
+    new_element->type = ObjSurfaceCoeff;
+    new_element->obj = coeff_copy;
+    module_insert(md, new_element);
 }
 
 // create a new DrawState structure and initialize the fields.

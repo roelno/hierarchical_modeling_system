@@ -188,6 +188,7 @@ void matrix_xformPolygon(Matrix *m, Polygon *p) {
     if (m != NULL && p != NULL) {
         for (int i = 0; i < p->nVertex; i++) {
             matrix_xformPoint(m, &p->vertex[i], &p->vertex[i]);
+            point_normalize(&p->vertex[i]);
         }
     }
 }
@@ -196,6 +197,7 @@ void matrix_xformPolyline(Matrix *m, Polyline *p) {
     if (m != NULL && p != NULL) {
         for (int i = 0; i < p->numVertex; i++) {
             matrix_xformPoint(m, &p->vertex[i], &p->vertex[i]);
+            point_normalize(&p->vertex[i]);
         }
     }
 }

@@ -132,7 +132,22 @@ void module_rotateY(Module *md, double cth, double sth);
 // Matrix operand to add a rotation that orients to the orthonormal axes u, v, w
 void module_rotateXYZ(Module *md, Vector *u, Vector *v, Vector *w);
 
+//  Adds a unit cube, axis-aligned and centered on zero to the Module. If solid
+//  is zero, add only lines. If solid is non-zero, use polygons. Make sure each
+//  polygon has surface normals defined for it
 void module_cube(Module *md, int solid);
+
+// Adds the foreground color value to the tail of the module’s list.
+void module_color(Module *md, Color *c);
+
+//  Adds the body color value to the tail of the module’s list
+void module_bodyColor(Module *md, Color *c);
+
+// Adds the surface color value to the tail of the module’s list.
+void module_surfaceColor(Module *md, Color *c);
+
+// Adds the specular coefficient to the tail of the module’s list.
+void module_surfaceCoeff(Module *md, float coeff);
 
 // create a new DrawState structure and initialize the fields.
 DrawState *drawstate_create();
@@ -151,7 +166,5 @@ void drawstate_setSurfaceCoeff(DrawState *ds, float f);
 
 // copy the DrawState data.
 void drawstate_copy(DrawState *to, DrawState *from);
-
-
 
 #endif

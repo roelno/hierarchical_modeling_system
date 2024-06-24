@@ -26,6 +26,8 @@ void point_normalize(Point *p) {
   if (p->val[3] != 0) {
     p->val[0] /= p->val[3];
     p->val[1] /= p->val[3];
+    p->val[2] /= p->val[3];
+    p->val[3] = 1.0;
   }
 }
 

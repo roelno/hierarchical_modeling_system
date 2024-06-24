@@ -1,6 +1,8 @@
 #include "../include/polygon.h"
 #include "../include/line.h"
+#include <stdio.h>
 #include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 void *polygon_create() {
@@ -89,7 +91,6 @@ void polygon_copy(Polygon *to, Polygon *from) {
   to->oneSided = from->oneSided;
   to->nVertex = from->nVertex;
 
-  free(to->vertex); // Free the existing vertices in 'to' if any
   to->vertex = malloc(sizeof(Point) * from->nVertex);
   if (to->vertex == NULL) {
     to->nVertex = 0; // Ensure consistency on allocation failure
@@ -125,6 +126,10 @@ void polygon_normalize(Polygon *p) {
 void polygon_draw(Polygon *p, Image *src, Color c) {
   if (p == NULL || src == NULL || p->nVertex < 2) {
     return; // Not enough vertices to form a line
+  }
+  printf("Polygon: %d vertices\n", p->nVertex);
+  for (int i = 0; i < p->nVertex; i++) {
+    point_print(&p->vertex[i], stdout);
   }
 
   Line l;
