@@ -56,7 +56,6 @@ void polygon_set(Polygon *p, int numV, Point *vlist) {
     return;
   }
 
-  free(p->vertex);
   p->vertex = malloc(sizeof(Point) * numV);
   if (p->vertex == NULL) {
     p->nVertex = 0; // Ensure consistent state on allocation failure

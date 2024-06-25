@@ -369,12 +369,19 @@ void draw_transformed_point(Point *p, Matrix *VTM, Matrix *GTM, Matrix *LTM, Dra
 void draw_transformed_line(Line *l, Matrix *VTM, Matrix *GTM, Matrix *LTM, DrawState *ds, Image *src) {
     Line temp;
     line_copy(&temp, l);
+    printf("Before LTM: %f, %f, %f, %f\n", temp.a.val[0], temp.a.val[1], temp.a.val[2], temp.a.val[3]);
     matrix_xformPoint(LTM, &temp.a, &temp.a);
     matrix_xformPoint(LTM, &temp.b, &temp.b);
+    printf("After LTM: %f, %f, %f, %f\n", temp.a.val[0], temp.a.val[1], temp.a.val[2], temp.a.val[3]);
     matrix_xformPoint(GTM, &temp.a, &temp.a);
     matrix_xformPoint(GTM, &temp.b, &temp.b);
+    printf("After GTM: %f, %f, %f, %f\n", temp.a.val[0], temp.a.val[1], temp.a.val[2], temp.a.val[3]);
     matrix_xformPoint(VTM, &temp.a, &temp.a);
     matrix_xformPoint(VTM, &temp.b, &temp.b);
+    printf("After VTM: %f, %f, %f, %f\n", temp.a.val[0], temp.a.val[1], temp.a.val[2], temp.a.val[3]);
+    point_normalize(&temp.a);
+    point_normalize(&temp.b);
+    printf("After norm: %f, %f, %f, %f\n", temp.a.val[0], temp.a.val[1], temp.a.val[2], temp.a.val[3]);
     line_draw(&temp, src, ds->color);
 }
 
