@@ -32,10 +32,10 @@ _DEPS = ppmIO.h image.h graphics.h polygon.h transform.h viewing.h hierarchical_
 DEPS = $(patsubst %,$(INCDIR)/%,$(_DEPS))
 
 # put a list of the executables here
-EXECUTABLES = test6a test6b cube
+EXECUTABLES = test6a test6b cube gif spaceship creative
 
 # put a list of all the object files here for all executables (with .o endings)
-_OBJ = test6a.o test6b.o cube.o
+_OBJ = test6a.o test6b.o cube.o gif.o spaceship.o creative.o
 
 # convert them to point to the right place
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
@@ -62,6 +62,12 @@ test6a: $(ODIR)/test6a.o
 test6b: $(ODIR)/test6b.o
 	$(CC) -o $(BINDIR)/$@ $^ $(LFLAGS) $(LIBS)
 cube: $(ODIR)/cube.o
+	$(CC) -o $(BINDIR)/$@ $^ $(LFLAGS) $(LIBS)
+gif: $(ODIR)/gif.o
+	$(CC) -o $(BINDIR)/$@ $^ $(LFLAGS) $(LIBS)
+spaceship: $(ODIR)/spaceship.o
+	$(CC) -o $(BINDIR)/$@ $^ $(LFLAGS) $(LIBS)
+creative: $(ODIR)/creative.o
 	$(CC) -o $(BINDIR)/$@ $^ $(LFLAGS) $(LIBS)
 
 
